@@ -18,35 +18,26 @@
  *
  *  Version history
 */
-def version() {	return "v0.3.154.20160921" }
+def version() {	return "v0.3.162.20161028" }
 /*
+ *	10/28/2016 >>> v0.3.162.20161028 - RC - Minor speed improvement for getNextConditionId()
+ *	10/27/2016 >>> v0.3.161.20161027 - RC - Fixed a bug affecting the queueAskAlexaMessage virtual command task
+ *	10/14/2016 >>> v0.3.160.20161014 - RC - Fixed a bug not allowing Set color to work when using HSL instead of a simple color. Compliments to @simonselmer
+ *	10/04/2016 >>> v0.3.15f.20161004 - RC - Code trim down to avoid "Class file too large!" error in JVM
+ *	10/03/2016 >>> v0.3.15e.20161003 - RC - Fixed a problem where latching pistons would not allow both conditional blocks to run for Simulate, Execute, Follow Up
+ *	10/02/2016 >>> v0.3.15d.20161002 - RC - Added some logging for LIFX integration
+ *	10/01/2016 >>> v0.3.15c.20161001 - RC - Added LIFX integration
+ *	 9/28/2016 >>> v0.3.15b.20160928 - RC - Fix for internal web requests - take 2
+ *	 9/28/2016 >>> v0.3.15a.20160928 - RC - Fix for internal web requests
+ *	 9/28/2016 >>> v0.3.159.20160928 - RC - Added low(), med(), and high() support (standard command instead of custom) for the zwave fan speed control
+ *	 9/28/2016 >>> v0.3.158.20160928 - RC - Minor fixes where state.app or state.config.app was not yet initialized - though I could not replicate the issue
+ *	 9/28/2016 >>> v0.3.157.20160928 - RC - Added support for local http requests - simply use a local IP in the HTTP request and CoRE will use the hub for that request - don't expect any results back yet :(
+ *	 9/27/2016 >>> v0.3.156.20160927 - RC - Fixed a bug that was bleeding the time from offset into the time to for piston restrictions
+ *	 9/26/2016 >>> v0.3.155.20160926 - RC - Added lock user codes support and cancel on condition state change
  *	 9/21/2016 >>> v0.3.154.20160921 - RC - DO NOT UPDATE TO THIS UNLESS REQUESTED TO - Lock user codes tested OK, adding "Cancel on condition state change", testing
  *	 9/21/2016 >>> v0.3.153.20160921 - RC - DO NOT UPDATE TO THIS UNLESS REQUESTED TO - Improved support for lock user codes
  *	 9/21/2016 >>> v0.3.152.20160921 - RC - DO NOT UPDATE TO THIS UNLESS REQUESTED TO - Added support for lock user codes
  *	 9/20/2016 >>> v0.3.151.20160920 - RC - Release Candidate is here! Added Pause/Resume Piston tasks
- *	 9/18/2016 >>> v0.2.150.20160918 - Beta M2 - Fixed a problem with condition state changes due to a prior fix in the evaluation display for the dashboard (v0.2.14f)
- *	 9/16/2016 >>> v0.2.14f.20160916 - Beta M2 - Fixed some minor issues with condition evaluation display in the dashboard. Introducing "not evaluated": blue means evaluated as true, red means evaluated as false, gray means not evaluated at all
- *	 9/16/2016 >>> v0.2.14e.20160916 - Beta M2 - Fixed a problem with "time is any time of the day" where a events would be scheduled in error
- *	 9/16/2016 >>> v0.2.14d.20160916 - Beta M2 - Added optional 'ingredients' value1, value2, and value3 to IFTTT Maker request
- *	 9/08/2016 >>> v0.2.14c.20160908 - Beta M2 - Added a few more system variables, $locationMode and $shmStatus
- *	 9/02/2016 >>> v0.2.14b.20160902 - Beta M2 - Fixed a problem with execution time measurements
- *	 9/02/2016 >>> v0.2.14a.20160902 - Beta M2 - Fixed a problem with decimal points on dashboard taps
- *	 9/02/2016 >>> v0.2.149.20160902 - Beta M2 - Improved exit point speed (removed unnecessary piston refreshes)
- *	 9/02/2016 >>> v0.2.148.20160902 - Beta M2 - Added instructions for removing dashboard taps. Thank you @dseg for the Tap idea.
- *	 9/02/2016 >>> v0.2.147.20160902 - Beta M2 - Minor fix with adding taps and API
- *	 9/02/2016 >>> v0.2.146.20160902 - Beta M2 - Introducing the dashboard taps - tap one to run its associated pistons
- *	 8/21/2016 >>> v0.2.144.20160821 - Beta M2 - Fixed a bug in accepting an action restriction with a negative offset for the range end
- *	 8/21/2016 >>> v0.2.143.20160821 - Beta M2 - Minor bug fixes
- *	 8/20/2016 >>> v0.2.142.20160820 - Beta M2 - Made setVariable use long numbers to avoid range overflows
- *	 8/20/2016 >>> v0.2.141.20160820 - Beta M2 - Fixed a problem with SWITCH-CASE which would, upon the end of a matching case, send the flow to the second following case's start, executing two cases
- *	 8/17/2016 >>> v0.2.140.20160817 - Beta M2 - Fixed a problem with triggers and threeAxis orientation
- *	 8/17/2016 >>> v0.2.140.20160817 - Beta M2 - Fixed a problem with triggers and threeAxis orientation
- *	 8/17/2016 >>> v0.2.13f.20160817 - Beta M2 - Fixed a problem with caching old orientation values - triggers for orientation did not work correctly
- *	 8/16/2016 >>> v0.2.13e.20160816 - Beta M2 - Minor fixes for the dashboard, progress on the experimental dashboard
- *	 8/15/2016 >>> v0.2.13d.20160815 - Beta M2 - Fixed a bug affecting variables (introduced with v0.2.13c), made some dashboard improvements (speed)
- *	 8/14/2016 >>> v0.2.13c.20160814 - Beta M2 - Minor fix regarding setting a number variable - allowing decimals during the calculus
- *	 8/14/2016 >>> v0.2.13b.20160814 - Beta M2 - Forced capability Sensor to show (no default attribute in documentation)
- *	 8/12/2016 >>> v0.2.13a.20160812 - Beta M2 - Initial release of Beta M2
  */
 
 /******************************************************************************/
@@ -84,6 +75,8 @@ preferences {
 	page(name: "pageDashboardTap")
 	page(name: "pageIntegrateIFTTT")
 	page(name: "pageIntegrateIFTTTConfirm")
+	page(name: "pageIntegrateLIFX")
+	page(name: "pageIntegrateLIFXConfirm")
 	page(name: "pageResetSecurityToken")
 	page(name: "pageResetSecurityTokenConfirm")
     page(name: "pageRecoverAllPistons")
@@ -100,7 +93,6 @@ preferences {
 	page(name: "pageConditionGroupL3")
 	page(name: "pageConditionGroupL4")
 	page(name: "pageConditionGroupL5")
-	page(name: "pageConditionVsTrigger")
 	page(name: "pageActionGroup")
 	page(name: "pageAction")
 	page(name: "pageActionDevices")
@@ -141,8 +133,7 @@ private customCommandSuffix() { return "(..)" }
 /*** COMMON PAGES															***/
 /******************************************************************************/
 def pageMain() {
-	def res = dev()
-	parent ? pageMainCoREPiston() : pageMainCoRE()
+    parent ? pageMainCoREPiston() : pageMainCoRE()
 }
 
 def pageViewVariable(params) {
@@ -297,6 +288,8 @@ def pageGeneralSettings(params) {
 		section("CoRE Integrations") {
 			def iftttConnected = state.modules && state.modules["IFTTT"] && settings["iftttEnabled"] && state.modules["IFTTT"].connected
 			href "pageIntegrateIFTTT", title: "IFTTT", description: iftttConnected ? "Connected" : "Not configured", state: (iftttConnected ? "complete" : null), submitOnChange: true, required: false
+			def lifxConnected = state.modules && state.modules["LIFX"] && settings["lifxEnabled"] && state.modules["LIFX"].connected
+			href "pageIntegrateLIFX", title: "LIFX", description: lifxConnected ? "Connected" : "Not configured", state: (lifxConnected ? "complete" : null), submitOnChange: true, required: false
 		}
 
 		section("Piston Recovery") {
@@ -534,11 +527,11 @@ def pageChart(params) {
 
 
 def pageIntegrateIFTTT() {
-	return dynamicPage(name: "pageIntegrateIFTTT", title: "IFTTT™ Integration", nextPage: settings.iftttEnabled ? "pageIntegrateIFTTTConfirm" : null) {
+	return dynamicPage(name: "pageIntegrateIFTTT", title: "IFTTT Integration", nextPage: settings.iftttEnabled ? "pageIntegrateIFTTTConfirm" : null) {
 		section() {
-			paragraph "CoRE can optionally integrate with IFTTT™ (IF This Then That) via the Maker channel, triggering immediate events to IFTTT™. To enable IFTTT™, please login to your IFTTT™ account and connect the Maker channel. You will be provided with a key that needs to be entered below", required: false
+			paragraph "CoRE can optionally integrate with IFTTT (IF This Then That) via the Maker channel, triggering immediate events to IFTTT. To enable IFTTT, please login to your IFTTT account and connect the Maker channel. You will be provided with a key that needs to be entered below", required: false
 			input "iftttEnabled", "bool", title: "Enable IFTTT", submitOnChange: true, required: false
-			if (settings.iftttEnabled) href name: "", title: "IFTTT Maker channel", required: false, style: "external", url: "https://www.ifttt.com/maker", description: "tap to go to IFTTT™ and connect the Maker channel"
+			if (settings.iftttEnabled) href name: "", title: "IFTTT Maker channel", required: false, style: "external", url: "https://www.ifttt.com/maker", description: "tap to go to IFTTT and connect the Maker channel"
 		}
 		if (settings.iftttEnabled) {
 			section("IFTTT Maker key"){
@@ -550,7 +543,7 @@ def pageIntegrateIFTTT() {
 
 def pageIntegrateIFTTTConfirm() {
 	if (testIFTTT()) {
-		return dynamicPage(name: "pageIntegrateIFTTTConfirm", title: "IFTTT Integration", nextPage:"pageGeneralSettings") {
+		return dynamicPage(name: "pageIntegrateIFTTTConfirm", title: "IFTTT Integration") {
 			section(){
 				paragraph "Congratulations! You have successfully connected CoRE to IFTTT."
 			}
@@ -563,6 +556,42 @@ def pageIntegrateIFTTTConfirm() {
 		}
 	}
 }
+
+
+
+def pageIntegrateLIFX() {
+	return dynamicPage(name: "pageIntegrateLIFX", title: "LIFX Integration", nextPage: settings.lifxEnabled ? "pageIntegrateLIFXConfirm" : null) {
+		section() {
+			paragraph "CoRE can optionally integrate with LIFX, allowing you to run scenes directly into your LIFX environment. To enable LIFX, please login to your LIFX cloud account and go to Settings under your account. Tap on Generate New Token and copy the generated token into the field below", required: false
+			input "lifxEnabled", "bool", title: "Enable LIFX", submitOnChange: true, required: false
+			if (settings.lifxEnabled) href name: "", title: "LIFX Cloud Account", required: false, style: "external", url: "https://cloud.lifx.com", description: "tap to go to LIFX Cloud and generate an access token"
+		}
+		if (settings.lifxEnabled) {
+			section("LIFX Access Token"){
+				input("lifxToken", "string", title: "Token", description: "Your LIFX Access Token", required: false)
+			}
+		}
+	}
+}
+
+def pageIntegrateLIFXConfirm() {
+	if (testLIFX()) {
+		return dynamicPage(name: "pageIntegrateLIFXConfirm", title: "LIFX Integration") {
+			section(){
+				paragraph "Congratulations! You have successfully connected CoRE to LIFX."
+			}
+		}
+	} else {
+		return dynamicPage(name: "pageIntegrateLIFXConfirm",  title: "LIFX Integration") {
+			section(){
+				paragraph "Sorry, the access token you provided for LIFX is invalid. Please go back and try again."
+			}
+		}
+	}
+}
+
+
+
 
 
 def pageResetSecurityToken() {
@@ -629,6 +658,7 @@ private pageMainCoREPiston() {
 			//input "enabled", "bool", description: enabled ? "Current state: ${currentState == null ? "unknown" : currentState}\nCPU: ${cpu()}\t\tMEM: ${mem(false)}" : "", title: "Status: ${enabled ? "RUNNING" : "PAUSED"}", submitOnChange: true, required: false, state: "complete", defaultValue: true
 			href "pageToggleEnabled", description: enabled ? "Current state: ${currentState == null ? "unknown" : currentState}\nCPU: ${cpu()}\t\tMEM: ${mem(false)}" : "", title: "Status: ${enabled ? "RUNNING" : "PAUSED"}", submitOnChange: true, required: false, state: "complete"
 			input "mode", "enum", title: "Piston Mode", required: true, state: null, options: pistonModes, defaultValue: "Basic", submitOnChange: true
+/*
 			switch (state.config.app.mode) {
 				case "Latching":
 				paragraph "A latching Piston - also known as a bi-stable Piston - uses one set of conditions to achieve a 'true' state and a second set of conditions to revert back to its 'false' state"
@@ -637,6 +667,7 @@ private pageMainCoREPiston() {
 				paragraph "An Else-If Piston executes a set of actions if an initial condition set evaluates to true, otherwise executes a second set of actions if a second condition set evaluates to true"
 				break
 			}
+*/
 		}
         
         if (state.config.app.mode != "Do") {
@@ -926,7 +957,7 @@ private getConditionGroupPageContent(params, condition) {
 
 			if (id > 0) {
 				section(title: "Required data - do not change", hideable: true, hidden: true) {
-					input "condParent$id", "number", title: "Parent ID", description: "Value needs to be $pid, do not change", range: "$pid..${pid+1}", defaultValue: pid
+					input "condParent$id", "number", title: "Parent ID", description: "Value needs to be $pid, do not change", range: "-2..${pid+1}", defaultValue: pid
 				}
 			}
 		}
@@ -1312,24 +1343,12 @@ def pageCondition(params) {
 				}
 
 				section(title: "Required data - do not change", hideable: true, hidden: true) {
-					input "condParent$id", "number", title: "Parent ID", description: "Value needs to be $pid, do not change condParent$id", range: "$pid..${pid+1}", defaultValue: pid
+					input "condParent$id", "number", title: "Parent ID", description: "Value needs to be $pid, do not change condParent$id", range: "-2..${pid+1}", defaultValue: pid
 				}
 			}
 		}
 	} catch(e) {
 		debug "ERROR: Error while executing pageCondition: ", null, "error", e
-	}
-}
-
-def pageConditionVsTrigger() {
-	state.run = "config"
-	dynamicPage(name: "pageConditionVsTrigger", title: "Conditions versus Trigers", uninstall: false, install: false) {
-		section() {
-			paragraph "All Pistons are event-driven. This means that an action is taken whenever something happens while the Piston is watching over. To do so, the Piston subscribes to events from all the devices you use while building your 'If...' and - in case of latching Pistons - your 'But if...' statements as well. Since a Piston subscribes to multiple device events, it is evaluated every time such an event occurs. Depending on your conditions, a device event may not necessarily make any change to the evaluated state of the Piston (think OR), but the Piston is evaluated either way, making it possible to execute actions even if the Piston's status didn't change. More about this under the 'Then...' or 'Else...' sections of the Piston."
-			paragraph "Events tell Pistons something has changed. Depending on the logic you are trying to implement, sometimes you need to check that the state of a device is within a certain range, and sometimes you need to react to a device state reaching a certain value, list or range.\n\nLet's start with an example. Say you have a temperature sensor and you want to monitor its temperature. You want to be alerted if the temperature is over 100°F. Now, assume the temperature starts at 99°F and increases steadily at a rate of one degree Fahrenheit per minute.", title: "State vs. State Change"
-			paragraph "If you use a condition, the Piston will be evaluated every one minute, as the temperature changes. The first evaluation will result in a false condition as the temperature reaches 100°F. Remember, our condition is for the temperature to be OVER 100°F. The next minute, your temperature is reported at 101°F which will cause the Piston to evaluate true this time. Your 'Then...' actions will now have a chance at execution. The next minute, as the temperature reaches 102°F, the Piston will again evaluate true and proceed to executing your 'Then...' actions. This will happen for as long as the temperature remains over 100°F and will possibly execute your actions every time a new temperature is read that matches that condition. You could use this to pass the information along to another service (think IFTTT) or display it on some sort of screen. But not for turning on a thermostat - you don't neet to turn the thermostat on every one minute, it's very likely already on from your last execution.", title: "Using a Condition"
-			paragraph "If you use a trigger, the Piston will now be on the lookout for a certain state change that 'triggers' our evaluation to become true. You will no longer look for a temperature over 100°F, but instead you will be looking for when the temperature exceeds 100°F. This means your actions will only be executed when the temperature actually transitioned from below or equal to 100°F to over 100°F. This means your actions will only execute once and for the Piston to fire your actions again, the temperature would have to first drop at or below 100°F and then raise again to exceed your set threshold of 100°F. Now, this you could use to control a thermostat, right?", title: "Using a Trigger"
-		}
 	}
 }
 
@@ -1520,7 +1539,8 @@ def pageAction(params) {
 					ids = ids.sort()
 					def availableCommands = (deviceAction ? listCommonDeviceCommands(devices, usedCapabilities) : [])
 					def flowCommands = []
-					for (vcmd in virtualCommands().sort { it.display }) {
+                    def cmds = virtualCommands()
+					for (vcmd in cmds.sort{ it.display }) {
 						if ((!(vcmd.display in availableCommands)) && (vcmd.location || deviceAction)) {
 							def ok = true
 							if (vcmd.requires && vcmd.requires.size()) {
@@ -1603,6 +1623,8 @@ def pageAction(params) {
 													input "actParam$id#$tid-$i", "enum", options: listStateVariables(true), title: param.title, required: param.required, submitOnChange: param.last, multiple: false
 												} else if (param.type == "stateVariables") {
 													input "actParam$id#$tid-$i", "enum", options:  listStateVariables(true), title: param.title, required: param.required, submitOnChange: param.last, multiple: true
+												} else if (param.type == "lifxScenes") {
+													input "actParam$id#$tid-$i", "enum", options:  listLifxScenes(), title: param.title, required: param.required, submitOnChange: param.last, multiple: false
 												} else if (param.type == "piston") {
 													def pistons = parent.listPistons(state.config.expertMode || command.name.contains("follow") ? null : app.label)
 													input "actParam$id#$tid-$i", "enum", options: pistons, title: param.title, required: param.required, submitOnChange: param.last, multiple: false
@@ -1704,7 +1726,7 @@ def pageAction(params) {
 
 				if (id) {
 					section(title: "Required data - do not change", hideable: true, hidden: true) {
-						input "actParent$id", "number", title: "Parent ID", description: "Value needs to be $pid, do not change", range: "$pid..${pid+1}", defaultValue: pid
+						input "actParent$id", "number", title: "Parent ID", description: "Value needs to be $pid, do not change", range: "-2..${pid+1}", defaultValue: pid
 					}
 				}
 			}
@@ -2968,10 +2990,35 @@ def listAskAlexaMacros() {
 	return state.askAlexaMacros ? state.askAlexaMacros : []
 }
 
-def iftttKey() {
-	if (parent) return parent.iftttKey()
+def getIftttKey() {
+	if (parent) return parent.getIftttKey()
+	def module = atomicState.modules?.IFTTT
+	return (module && module.connected ? module.key : null)
+}
+
+def getLifxToken() {
+	if (parent) return parent.getLifxToken()
+	def module = atomicState.modules?.LIFX
+	return (module && module.connected ? module.token : null)
+}
+
+def listLifxScenes() {
+	if (parent) return parent.listLifxScenes()
 	def modules = atomicState.modules
-	return (modules && modules["IFTTT"] && modules["IFTTT"].connected ? modules["IFTTT"].key : null)
+	if (modules && modules["LIFX"] && modules["LIFX"].connected) {
+    	return modules["LIFX"]?.scenes*.name
+    }
+    return []
+}
+
+def getLifxSceneId(name) {
+	if (parent) return parent.getLifxSceneId(name)
+	def modules = atomicState.modules
+	if (modules && modules["LIFX"] && modules["LIFX"].connected) {
+    	def scene = modules["LIFX"]?.scenes.find { it.name == name }
+        if (scene) return scene.id
+    }
+    return null
 }
 
 
@@ -3204,6 +3251,50 @@ def testIFTTT() {
 	return false
 }
 
+def testLIFX() {
+	if ((!settings.lifxToken) || (!settings.lifxEnabled)) return false
+	//setup our security descriptor
+	state.modules["LIFX"] = [
+		token: settings.lifxToken,
+		connected: false
+	]
+	if (settings.lifxToken) {
+		//verify the key
+         def requestParams = [
+            uri:  "https://api.lifx.com",
+            path: "/v1/scenes",
+            headers: [
+            	"Authorization": "Bearer ${settings.lifxToken}"
+            ],
+            requestContentType: "application/json"
+        ]
+        try {
+            return httpGet(requestParams) { response ->
+                if (response.status == 200) {
+                	if (response.data instanceof List) {
+    	                state.modules["LIFX"].connected = true
+                        def ss = []
+                        for(scene in response.data) {
+                        	def s = [
+                            	id: scene.uuid,
+                                name: scene.name
+                            ]
+                            ss.push(s)
+                        }
+                        state.modules["LIFX"].scenes = ss
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+        catch(all) {
+	        return false
+        }
+	}
+	return false
+}
+
 //creates a condition (grouped or not)
 private createCondition(group) {
 	def condition = [:]
@@ -3375,7 +3466,8 @@ private getNextConditionId() {
 	def nextId = getLastConditionId(state.config.app.conditions) + 1
 	def otherNextId = getLastConditionId(state.config.app.otherConditions) + 1
 	nextId = nextId > otherNextId ? nextId : otherNextId
-	while (settings.findAll { it.key == "condParent" + nextId }) {
+    def keys = settings.findAll { it.key.startsWith("condParent") }
+	while (keys.find { it.key == "condParent" + nextId }) {
 		nextId++
 	}
 	return (int) nextId
@@ -3755,7 +3847,7 @@ private getTaskDescription(task, prfx = '') {
 					result = result + "HSL(${task.p[2].d}°, ${task.p[3].d}%, ${task.p[4].d}%)"
                 }
 			} else {
-				result = formatMessage(cmd.description ? cmd.description : cmd.display, task.p)
+				result = formatMessage(cmd.description ?: cmd.display, task.p)
 			}
 		}
 	}
@@ -3937,6 +4029,7 @@ private exitPoint(milliseconds) {
 	state.lastExecutionTime = milliseconds
     
 	try {
+        state.nextScheduledTime = atomicState.nextScheduledTime
     	parent.onChildExitPoint(app, lastEvent, milliseconds, state.nextScheduledTime, getSummary())        
 	} catch(e) {
 		debug "ERROR: Could not update parent app: ", null, "error", e
@@ -4047,7 +4140,8 @@ private broadcastEvent(evt, primary, secondary) {
 				switch (mode) {
                 	case "And-If":
                     case "Or-If":
-                        //these two modes always evaluate both blocks
+                    case "Latching":
+                        //these three modes always evaluate both blocks
                         primary = true
                         secondary = true
                         force = true
@@ -5833,7 +5927,7 @@ private checkTimeCondition(timeFrom, timeFromCustom, timeFromOffset, timeTo, tim
 				tf = h * 60 + m + cast(timeFromOffset, "number")
 				break
 			case 1:
-				tt = h * 60 + m + cast(timeFromOffset, "number")
+				tt = h * 60 + m + cast(timeToOffset, "number")
 				break
 		}
 		i += 1
@@ -5945,12 +6039,6 @@ private buildFlowChart(tasks) {
 }
 
 
-
-private cmd_repeatAction(action, task, time) {
-	def result = cmd_wait(action, task, time)
-	result.schedule = true
-	return result
-}
 
 private cmd_followUp(action, task, time) {
 	def result = cmd_wait(action, task, time)
@@ -6646,12 +6734,15 @@ private processTasks() {
 			if (nextTime) {
 				def seconds = Math.ceil((nextTime - now()) / 1000)
 				runIn(seconds, timeHandler)
+				atomicState.nextScheduledTime = nextTime
 				state.nextScheduledTime = nextTime
 				setVariable("\$nextScheduledTime", nextTime, true)
 				debug "Scheduling ST job to run in ${seconds}s, at ${formatLocalTime(nextTime)}", null, "info"
 			} else {
 				setVariable("\$nextScheduledTime", null, true)
-				state.nextScheduledTime = null
+				atomicState.nextScheduledTime = null
+				state.nextScheduledTime = nextTime
+                unschedule(timeHandler)
 			}
 
 			//we're done with the scheduling, let's do some real work, if we have any
@@ -6887,7 +6978,7 @@ private processCommandTask(task) {
 							} else {
 								p.hue = hue
 								p.saturation = saturation
-								p.level - lightness
+								p.level = lightness
 							}
                             def msg = "Executing command: [${device}].${cn}($p)"
                             def perf = now()
@@ -7370,7 +7461,7 @@ private task_vcmd_queueAskAlexaMessage(device, action, task, suffix = "") {
 	}
 	def message = formatMessage(params[0].d)
     def unit = formatMessage(params[1].d)
-    def appName = (params.size() == 3 ? formatMessage(param[2].d) : null) ?: (app.label ?: app.name)
+    def appName = (params.size() == 3 ? formatMessage(params[2].d) : null) ?: (app.label ?: app.name)
     sendLocationEvent name: "AskAlexaMsgQueue", value: appName , isStateChange: true, descriptionText: message, unit: unit
 }
 
@@ -7401,6 +7492,8 @@ private task_vcmd_followUp(devices, action, task, suffix = "") {
 	}
 	def piston = params[2].d
 	def result = execute(piston)
+    //state.store = atomicState.store
+    state.nextScheduledTime = atomicState.nextScheduledTime
 	if (params[3].d) {
 		setVariable(params[3].d, result)
 	}
@@ -7414,6 +7507,8 @@ private task_vcmd_executePiston(devices, action, task, suffix = "") {
 	}
 	def piston = params[0].d
 	def result = execute(piston)
+    //state.store = atomicState.store
+    state.nextScheduledTime = atomicState.nextScheduledTime
 	if (params[1].d) {
 		setVariable(params[1].d, result)
 	}
@@ -7440,6 +7535,39 @@ private task_vcmd_resumePiston(devices, action, task, suffix = "") {
 	return true
 }
 
+private task_vcmd_lifxScene(devices, action, task, suffix = "") {
+	def params = (task && task.data && task.data.p && task.data.p.size()) ? task.data.p : []
+	if (params.size() != 1) {
+		return false
+	}
+	def sceneName = params[0].d
+    def sceneId = getLifxSceneId(sceneName)
+    def token = getLifxToken()
+    if (sceneId != null) {
+    	def requestParams = [
+            uri:  "https://api.lifx.com",
+            path: "/v1/scenes/scene_id:${sceneId}/activate",
+            headers: [
+                "Authorization": "Bearer $token"
+            ]
+        ]
+        try {
+            return httpPut(requestParams) { response ->
+                if (response.status == 200) {
+                    return true;
+                }
+                return false;
+            }
+        }
+        catch(all) {
+            return false
+        }
+    } else {
+    	debug "WARNING: LIFX Scene $sceneName could not be found", null, "warn"
+    }
+    return false
+}
+
 private task_vcmd_iftttMaker(devices, action, task, suffix = "") {
 	def params = (task && task.data && task.data.p && task.data.p.size()) ? task.data.p : []
 	if ((params.size() < 1) || (params.size() > 4)) {
@@ -7456,7 +7584,7 @@ private task_vcmd_iftttMaker(devices, action, task, suffix = "") {
 	}
     if (value1 || value2 || value3) {
         def requestParams = [
-            uri:  "https://maker.ifttt.com/trigger/${event}/with/key/" + iftttKey(),
+            uri:  "https://maker.ifttt.com/trigger/${event}/with/key/" + getIftttKey(),
             requestContentType: "application/json",
             body: [value1: value1, value2: value2, value3: value3]
         ]        
@@ -7465,7 +7593,7 @@ private task_vcmd_iftttMaker(devices, action, task, suffix = "") {
             setVariable("\$iftttStatusOk", response.status == 200, true)
 	    }
 	} else {    
-        httpGet("https://maker.ifttt.com/trigger/${event}/with/key/" + iftttKey()){ response ->
+        httpGet("https://maker.ifttt.com/trigger/${event}/with/key/" + getIftttKey()){ response ->
             setVariable("\$iftttStatusCode", response.status, true)            
             setVariable("\$iftttStatusOk", response.status == 200, true)
 	    }
@@ -7474,6 +7602,101 @@ private task_vcmd_iftttMaker(devices, action, task, suffix = "") {
 }
 
 private task_vcmd_httpRequest(devices, action, task, suffix = "") {
+	def params = (task && task.data && task.data.p && task.data.p.size()) ? task.data.p : []
+	if (params.size() != 6) return false
+	def uri = formatMessage(params[0].d)
+    def method = params[1].d
+    def contentType = params[2].d
+    def variables = params[3].d
+    def importData = !!params[4].d
+    def importPrefix = params[5].d ?: ""
+    if (!uri) return false
+    def protocol = "https"
+    def uriParts = uri.split("://").toList()
+    if (uriParts.size() > 2) {
+    	debug "Invalid URI for web request: $uri", null, "warn"
+    	return false
+    }
+    if (uriParts.size() == 2) {
+    	//remove the httpX:// from the uri
+    	protocol = uriParts[0].toLowerCase()
+        uri = uriParts[1]
+    }
+    def internal = uri.startsWith("10.") || uri.startsWith("192.168.")
+    if ((!internal) && uri.startsWith("172.")) {
+    	//check for the 172.16.x.x/12 class
+        def b = uri.substring(4,2)
+        if (b.isInteger()) {
+        	b = b.toInteger()
+            internal = (b >= 16) && (b <= 31)
+        }
+    }
+    def data = [:]
+    for(variable in variables) {
+    	data[variable] = getVariable(variable)
+    }
+    if (internal) {    
+    	try {
+            sendHubCommand(new physicalgraph.device.HubAction(
+                method: method,
+                path: (uri.indexOf("/") > 0) ? uri.substring(uri.indexOf("/")) : "",
+                headers: [
+                    HOST: (uri.indexOf("/") > 0) ? uri.substring(0, uri.indexOf("/")) : uri,
+                ],
+                query: data ?: null
+            ))
+        } catch (all) {
+            debug "Error executing internal web request: $all", null, "error"
+        }            
+    } else {
+        try {
+            def requestParams = [
+                uri:  "${protocol}://${uri}",
+                query: method == "GET" ? data : null,
+                requestContentType: (method != "GET") && (contentType == "JSON") ? "application/json" : "application/x-www-form-urlencoded",
+                body: method != "GET" ? data : null
+            ]
+            def func = ""
+            switch(method) {
+                case "GET":
+                    func = "httpGet"
+                    break
+                case "POST":
+                    func = "httpPost"
+                    break
+                case "PUT":
+                    func = "httpPut"
+                    break
+                case "DELETE":
+                    func = "httpDelete"
+                    break
+                case "HEAD":
+                    func = "httpHead"
+                    break
+            }
+            if (func) {
+                "$func"(requestParams) { response ->
+                    setVariable("\$httpStatusCode", response.status, true)            
+                    setVariable("\$httpStatusOk", response.status == 200, true)            
+                    if (importData && (response.status == 200) && response.data) {
+                        try {
+                            def jsonData = response.data instanceof Map ? response.data : new groovy.json.JsonSlurper().parseText(response.data)
+                            importVariables(jsonData, importPrefix)
+                        } catch (all) {
+                            debug "Error parsing JSON response for web request: $all", null, "error"
+                        }
+                    }
+                }
+            }
+        } catch (all) {
+            debug "Error executing external web request: $all", null, "error"
+        }
+    }
+	return true
+}
+
+
+private task_vcmd_httpRequest_backup(devices, action, task, suffix = "") {
 	def params = (task && task.data && task.data.p && task.data.p.size()) ? task.data.p : []
 	if (params.size() != 6) return false
 	def uri = params[0].d
@@ -7544,7 +7767,6 @@ private task_vcmd_httpRequest(devices, action, task, suffix = "") {
     }
 	return true
 }
-
 private task_vcmd_wolRequest(devices, action, task, suffix = "") {
 	def params = (task && task.data && task.data.p && task.data.p.size()) ? task.data.p : []
 	if (params.size() != 2) return false
@@ -7584,16 +7806,6 @@ private task_vcmd_beginForLoop(device, action, task, suffix = "") {
 	}
 }
 
-
-private task_vcmd_repeatAction(device, action, task, suffix = "") {
-	state.rerunSchedule = true
-	def params = (task && task.data && task.data.p && task.data.p.size()) ? task.data.p : []
-	if (!action || (params.size() != 2)) {
-		return false
-	}
-	scheduleAction(action)
-	return true
-}
 
 private task_vcmd_loadAttribute(device, action, task, simulate = false) {
 	def params = (task && task.data && task.data.p && task.data.p.size()) ? task.data.p : []
@@ -8254,7 +8466,7 @@ def getSummary() {
 	if (!state.app) {
     	log.warn "Piston ${app.label} is not complete, please open it and save it"
     }
-	def stateApp = (state.app ?: state.config.app)
+	def stateApp = (state.app ?: state.config?.app)
 	return [
 		i: app.id,
 		l: app.label,
@@ -8290,6 +8502,7 @@ def pausePiston(pistonName) {
 
 def pause() {
 	if (!parent) return null
+    if (!state.app) return null
     state.app.enabled = false
     if (state.config && state.config.app) state.config.app.enabled = false
     unsubscribe()
@@ -8311,6 +8524,7 @@ def resumePiston(pistonName) {
 
 def resume() {
 	if (!parent) return null
+    if (!state.app) return null
     state.app.enabled = true
     if (state.config && state.config.app) state.config.app.enabled = true    
     state.run = "app"
@@ -8981,7 +9195,7 @@ private withEachTrigger(condition, callback, data = null) {
 }
 
 private getTriggerCount(app) {
-	return getConditionTriggerCount(app.conditions) + (settings.mode in ["Latching", "And-If", "Or-If"] ? getConditionTriggerCount(app.otherConditions) : 0)
+	return app ? getConditionTriggerCount(app.conditions) + (settings.mode in ["Latching", "And-If", "Or-If"] ? getConditionTriggerCount(app.otherConditions) : 0) : 0
 }
 
 private getConditionConditionCount(condition) {
@@ -9007,7 +9221,7 @@ private getConditionConditionCount(condition) {
 }
 
 private getConditionCount(app) {
-	return getConditionConditionCount(app.conditions) + (!(settings.mode in ["Basic", "Simple", "Follow-Up"]) ? getConditionConditionCount(app.otherConditions) : 0)
+	return app ? getConditionConditionCount(app.conditions) + (!(settings.mode in ["Basic", "Simple", "Follow-Up"]) ? getConditionConditionCount(app.otherConditions) : 0) : 0
 }
 
 def rebuildPiston(update = false) {
@@ -10013,7 +10227,8 @@ private getCommandByName(name) {
 }
 
 private getVirtualCommandByName(name) {
-	for(def command in virtualCommands()) {
+	def cmds = virtualCommands()
+	for(def command in cmds) {
 		if (command.name == name) {
 			return command
 		}
@@ -10022,7 +10237,8 @@ private getVirtualCommandByName(name) {
 }
 
 private getCommandByDisplay(display) {
-	for(def command in commands()) {
+	def cmds = commands()
+	for(def command in cmds) {
 		if (command.display == display) {
 			return command
 		}
@@ -10031,7 +10247,8 @@ private getCommandByDisplay(display) {
 }
 
 private getVirtualCommandByDisplay(display) {
-	for(def command in virtualCommands()) {
+	def cmds = virtualCommands()
+	for(def command in cmds) {
 		if (command.display == display) {
 			return command
 		}
@@ -10129,7 +10346,7 @@ private parseCommandParameter(parameter) {
 		dataType = tokens[tokens.size() - 1]
 	}
 
-	if (dataType in ["askAlexaMacro", "ifttt", "attribute", "attributes", "contact", "contacts", "variable", "variables", "stateVariable", "stateVariables", "routine", "piston", "aggregation", "dataType"]) {
+	if (dataType in ["askAlexaMacro", "ifttt", "attribute", "attributes", "contact", "contacts", "variable", "variables", "lifxScenes", "stateVariable", "stateVariables", "routine", "piston", "aggregation", "dataType"]) {
 		//special case handled internally
 		return [title: title, type: dataType, required: required, last: last]
 	}
@@ -10422,12 +10639,15 @@ private commands() {
 		[ name: "presetSeven",	display: "Pan camera to preset #7",		],
 		[ name: "presetEight",	display: "Pan camera to preset #8",		],
 		[ name: "presetCommand",display: "Pan camera to custom preset",	parameters: ["Preset #:number[1..99]"], description: "Pan camera to preset #{0}",	],
-
+        //zwave fan speed control by @pmjoen
+		[ name: "low",	display: "Set to Low"],
+		[ name: "med",	display: "Set to Medium"],
+		[ name: "high",	display: "Set to High"],
 	]
 }
 
 private virtualCommands() {
-	return [
+	def cmds = [
 		[ name: "wait",				display: "Wait",							parameters: ["Time:number[1..1440]","Unit:enum[seconds,minutes,hours]"],													immediate: true,	location: true,	description: "Wait {0} {1}",	],
 		[ name: "waitVariable",		display: "Wait (variable)",					parameters: ["Time (variable):variable","Unit:enum[seconds,minutes,hours]"],													immediate: true,	location: true,	description: "Wait |[{0}]| {1}",	],
 		[ name: "waitRandom",		display: "Wait (random)",					parameters: ["At least:number[1..1440]","At most:number[1..1440]","Unit:enum[seconds,minutes,hours]"],	immediate: true,	location: true,	description: "Wait {0}-{1} {2}",	],
@@ -10515,12 +10735,11 @@ private virtualCommands() {
 		[ name: "deleteAskAlexaMessages",display: "Delete AskAlexa messages",			parameters: ["Unit:text", "?Application:text"],																	location: true, description: "Delete AskAlexa messages in unit {1}",aggregated: true,	],
 		[ name: "executeRoutine",	display: "Execute routine",					parameters: ["Routine:routine"],																		location: true, 										description: "Execute routine '{0}'",				aggregated: true,	],
 		[ name: "cancelPendingTasks",display: "Cancel pending tasks",			parameters: ["Scope:enum[Local,Global]"],																														description: "Cancel all pending {0} tasks",		],
-		//[ name: "repeatAction",			display: "Repeat whole action",				parameters: ["Interval:number[1..1440]","Unit:enum[seconds,minutes,hours]"],													immediate: true,	location: true,	description: "Repeat whole action every {0} {1}",	aggregated: true],
 		[ name: "followUp",				display: "Follow up with piston",			parameters: ["Delay:number[1..1440]","Unit:enum[seconds,minutes,hours]","Piston:piston","?Save state into variable:string"],	immediate: true,	varEntry: 3,	location: true,	description: "Follow up with piston '{2}' after {0} {1}",	aggregated: true],
 		[ name: "executePiston",		display: "Execute piston",					parameters: ["Piston:piston","?Save state into variable:string"],																varEntry: 1,	location: true,	description: "Execute piston '{0}'",	aggregated: true],
 		[ name: "pausePiston",			display: "Pause piston",					parameters: ["Piston:piston"],																location: true,	description: "Pause piston '{0}'",	aggregated: true],
 		[ name: "resumePiston",			display: "Resume piston",					parameters: ["Piston:piston"],																location: true,	description: "Resume piston '{0}'",	aggregated: true],
-        [ name: "httpRequest",			display: "Make a web request", parameters: ["URL:string","Method:enum[GET,POST,PUT,DELETE,HEAD]","Content Type:enum[JSON,FORM]","Variables to send:variables","Import response data into variables:bool","?Variable import name prefix (optional):string"], location: true, description: "Make a {1} web request to {0}", aggregated: true],
+        [ name: "httpRequest",			display: "Make a web request", parameters: ["URL:string","Method:enum[GET,POST,PUT,DELETE,HEAD]","Content Type:enum[JSON,FORM]","?Variables to send:variables","Import response data into variables:bool","?Variable import name prefix (optional):string"], location: true, description: "Make a {1} web request to {0}", aggregated: true],
         [ name: "wolRequest",			display: "Wake a LAN device", parameters: ["MAC address:string","?Secure code:string"], location: true, description: "Wake LAN device at address {0} with secure code {1}", aggregated: true],
         
 		//flow control commands
@@ -10538,11 +10757,17 @@ private virtualCommands() {
 		[ name: "beginSwitchBlock",		display: "Begin SWITCH block",				parameters: ["Variable to test:variable"],																																										location: true,		description: "SWITCH (|[{0}]|) DO",				flow: true,					indent: 2,	],
 		[ name: "beginSwitchCase",		display: "Begin CASE block",				parameters: ["Value:string"],																																													location: true,		description: "CASE '{0}':",					flow: true,	selfIndent: -1,		],
 		[ name: "endSwitchBlock",		display: "End SWITCH block",				location: true,		description: "END SWITCH",					flow: true,	selfIndent: -2,	indent: -2,	],
-	] + (location.contactBookEnabled ? [
-			[ name: "sendNotificationToContacts",requires: [],		 			display: "Send notification to contacts",	parameters: ["Message:text","Contacts:contacts","Save notification:bool"],																		location: true,			description: "Send notification '{0}' to {1}",													aggregated: true,	],
-	] : []) + (iftttKey() ? [
-			[ name: "iftttMaker",requires: [],		 			display: "Send IFTTT Maker event",	parameters: ["Event:text", "?Value1:string", "?Value2:string", "?Value3:string"],																		location: true,			description: "Send IFTTT Maker event '{0}' with parameters '{1}', '{2}', and '{3}'",													aggregated: true,	],
-	] : [])
+    ]
+   	if (location.contactBookEnabled) {
+    	cmds.push([ name: "sendNotificationToContacts", display: "Send notification to contacts", parameters: ["Message:text","Contacts:contacts","Save notification:bool"], location: true, description: "Send notification '{0}' to {1}", aggregated: true])
+    }
+    if (getIftttKey()) {
+    	cmds.push([ name: "iftttMaker", display: "Send IFTTT Maker event", parameters: ["Event:text", "?Value1:string", "?Value2:string", "?Value3:string"], location: true, description: "Send IFTTT Maker event '{0}' with parameters '{1}', '{2}', and '{3}'", aggregated: true])
+    }
+	if (getLifxToken()) {
+		cmds.push([ name: "lifxScene", display: "Activate LIFX scene", parameters: ["Scene:lifxScenes"], location: true, description: "Activate LIFX Scene '{0}'", aggregated: true])
+    }    
+    return cmds
 }
 
 private attributes() {
@@ -10565,7 +10790,7 @@ private attributes() {
 		[ name: "level",					type: "number",			range: "0..100",		unit: "%",	],
 		[ name: "switch",					type: "enum",			options: ["on", "off"],	interactive: true,	],
 		[ name: "switch*",					type: "enum",			options: ["on", "off"],	interactive: true,	],
-		[ name: "colorTemperature",			type: "number",			range: "2000..7000",	unit: "°K",	],
+		[ name: "colorTemperature",			type: "number",			range: "1700..27000",	unit: "°K",	],
 		[ name: "consumable",				type: "enum",			options: ["missing", "good", "replace", "maintenance_required", "order"],	],
 		[ name: "contact",					type: "enum",			options: ["open", "closed"],	],
 		[ name: "door",						type: "enum",			options: ["unknown", "closed", "open", "closing", "opening"],	interactive: true,	],
